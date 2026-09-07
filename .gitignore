@@ -1,0 +1,20 @@
+# Foundry build artifacts
+out/
+cache/
+
+# Dependencies are tracked by forge install — commit lib/ for reproducibility
+# Uncomment the line below if you prefer NOT to commit libraries:
+# lib/
+
+# Environment variables
+.env
+.env.local
+
+# Node.js (frontend/backend)
+node_modules/
+.next/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

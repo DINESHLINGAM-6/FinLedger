@@ -22,7 +22,7 @@ contract MaliciousToken is ERC20 {
     bool private isAttacking;
 
     constructor() ERC20("Malicious", "MAL") {
-        _mint(msg.sender, 1_000_000 * 10**6);
+        _mint(msg.sender, 1_000_000 * 10 ** 6);
     }
 
     function setupAttack(FinancingPool _pool, uint256 _id) external {
@@ -31,7 +31,11 @@ contract MaliciousToken is ERC20 {
     }
 
     // Override the standard ERC20 transferFrom to inject our attack
-    function transferFrom(address from, address to, uint256 value) public override returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) public override returns (bool) {
         // 1. Do the normal transfer
         super.transferFrom(from, to, value);
 
@@ -39,11 +43,11 @@ contract MaliciousToken is ERC20 {
         if (msg.sender == address(pool) && !isAttacking) {
             isAttacking = true;
             console.log("ATTACKER: Attempting to re-enter fundInvoice()...");
-            
+
             // This is where the hacker tries to drain funds by calling fundInvoice twice
             // in the exact same transaction.
             pool.fundInvoice(attackInvoiceId);
-            
+
             isAttacking = false;
         }
         return true;
@@ -74,7 +78,7 @@ contract AdvancedTestingTest is Test {
         registry.grantRole(registry.VERIFIER_ROLE(), admin);
         registry.grantRole(registry.FINANCING_CONTRACT_ROLE(), address(pool));
 
-        usdc.mint(investor, 1_000_000 * 10**6);
+        usdc.mint(investor, 1_000_000 * 10 ** 6);
         vm.stopPrank();
 
         // ---------------------------------------------------------
@@ -92,17 +96,26 @@ contract AdvancedTestingTest is Test {
      * @notice Foundry will run this function 256 times with random numbers.
      * We don't hardcode $10,000. We test ALL possible valid and invalid numbers.
      */
-    function testFuzz_createInvoice_amounts(uint256 amount, uint256 financingAmount) public {
+    function testFuzz_createInvoice_amounts(
+        uint256 amount,
+        uint256 financingAmount
+    ) public {
         // Bound random numbers to a realistic range (1 to 100M USDC)
-        amount = bound(amount, 1, 100_000_000 * 10**6);
-        
+        amount = bound(amount, 1, 100_000_000 * 10 ** 6);
+
         // If the fuzzer generates an invalid financing amount, we EXPECT a revert.
         if (financingAmount == 0 || financingAmount > amount) {
             vm.expectRevert();
         }
 
         vm.prank(business);
-        registry.createInvoice(buyer, amount, financingAmount, block.timestamp + 30 days, DOC_HASH);
+        registry.createInvoice(
+            buyer,
+            amount,
+            financingAmount,
+            block.timestamp + 30 days,
+            DOC_HASH
+        );
     }
 
     // ============================================================
@@ -116,35 +129,50 @@ contract AdvancedTestingTest is Test {
         // 1. Setup a corrupted FinancingPool that uses our MaliciousToken instead of USDC
         vm.startPrank(admin);
         MaliciousToken evilToken = new MaliciousToken();
-        FinancingPool corruptedPool = new FinancingPool(admin, address(registry), address(evilToken));
-        registry.grantRole(registry.FINANCING_CONTRACT_ROLE(), address(corruptedPool));
+        FinancingPool corruptedPool = new FinancingPool(
+            admin,
+            address(registry),
+            address(evilToken)
+        );
+        registry.grantRole(
+            registry.FINANCING_CONTRACT_ROLE(),
+            address(corruptedPool)
+        );
         vm.stopPrank();
 
         // 2. Create and verify a real invoice
         vm.prank(business);
-        uint256 id = registry.createInvoice(buyer, 10_000 * 10**6, 9_500 * 10**6, block.timestamp + 30 days, DOC_HASH);
+        uint256 id = registry.createInvoice(
+            buyer,
+            10_000 * 10 ** 6,
+            9_500 * 10 ** 6,
+            block.timestamp + 30 days,
+            DOC_HASH
+        );
         vm.prank(admin);
         registry.verifyInvoice(id);
 
         // 3. Setup the attacker
         address hacker = makeAddr("hacker");
         vm.prank(admin);
-        evilToken.transfer(hacker, 100_000 * 10**6);
+        evilToken.transfer(hacker, 100_000 * 10 ** 6);
 
         vm.startPrank(hacker);
-        evilToken.approve(address(corruptedPool), 100_000 * 10**6);
+        evilToken.approve(address(corruptedPool), 100_000 * 10 ** 6);
         evilToken.setupAttack(corruptedPool, id);
 
         // 4. TRIGGER THE ATTACK
-        // The hacker calls fundInvoice. Deep inside that function, evilToken.transferFrom 
+        // The hacker calls fundInvoice. Deep inside that function, evilToken.transferFrom
         // fires, which calls back into fundInvoice!
-        
+
         // OpenZeppelin v5 ReentrancyGuard custom error selector
         vm.expectRevert(bytes4(keccak256("ReentrancyGuardReentrantCall()")));
         corruptedPool.fundInvoice(id);
-        
+
         vm.stopPrank();
-        console.log("SUCCESS: Reentrancy attack was blocked by ReentrancyGuard!");
+        console.log(
+            "SUCCESS: Reentrancy attack was blocked by ReentrancyGuard!"
+        );
     }
 
     // ============================================================
@@ -152,9 +180,9 @@ contract AdvancedTestingTest is Test {
     // ============================================================
 
     /**
-     * @notice This invariant must ALWAYS be true, no matter what functions the 
+     * @notice This invariant must ALWAYS be true, no matter what functions the
      * fuzzer calls, in whatever order, with whatever inputs.
-     * 
+     *
      * THE TRUTH: "The FinancingPool acts strictly as a router. It should NEVER
      * hold any USDC itself at the end of a transaction."
      */

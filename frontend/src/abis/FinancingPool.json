@@ -1,0 +1,412 @@
+{
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "owner",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "invoiceRegistry",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "stablecoin",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "fundInvoice",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "getInvoiceInvestor",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getInvoiceRegistry",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getStablecoin",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "markDefaulted",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "markOverdue",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "owner",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "renounceOwnership",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "repayInvoice",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "transferOwnership",
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "InvoiceFunded",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "investor",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "business",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "financingAmount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "InvoiceMarkedDefaulted",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "InvoiceMarkedOverdue",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "OwnershipTransferred",
+      "inputs": [
+        {
+          "name": "previousOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "newOwner",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RepaymentReceived",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "buyer",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "investor",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "repaymentAmount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__BusinessCannotFundOwnInvoice",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__BuyerCannotBeInvestor",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__DueDateNotPassed",
+      "inputs": [
+        {
+          "name": "dueDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "currentTime",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__InvoiceAlreadyFunded",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__InvoiceNotFunded",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "actualStatus",
+          "type": "uint8",
+          "internalType": "enum InvoiceRegistry.InvoiceStatus"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__InvoiceNotOverdue",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "actualStatus",
+          "type": "uint8",
+          "internalType": "enum InvoiceRegistry.InvoiceStatus"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__InvoiceNotVerified",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "actualStatus",
+          "type": "uint8",
+          "internalType": "enum InvoiceRegistry.InvoiceStatus"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__NoInvestorRecorded",
+      "inputs": [
+        {
+          "name": "invoiceId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "FinancingPool__OnlyBuyerCanRepay",
+      "inputs": [
+        {
+          "name": "caller",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "expectedBuyer",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableInvalidOwner",
+      "inputs": [
+        {
+          "name": "owner",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "OwnableUnauthorizedAccount",
+      "inputs": [
+        {
+          "name": "account",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ReentrancyGuardReentrantCall",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "SafeERC20FailedOperation",
+      "inputs": [
+        {
+          "name": "token",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    }
+  ]
+}

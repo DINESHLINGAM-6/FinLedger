@@ -159,7 +159,10 @@ contract FinancingPool is Ownable, ReentrancyGuard {
     );
 
     /// @notice Thrown when someone other than the buyer tries to repay
-    error FinancingPool__OnlyBuyerCanRepay(address caller, address expectedBuyer);
+    error FinancingPool__OnlyBuyerCanRepay(
+        address caller,
+        address expectedBuyer
+    );
 
     /// @notice Thrown when markOverdue is called before the due date
     error FinancingPool__DueDateNotPassed(uint256 dueDate, uint256 currentTime);
@@ -189,7 +192,11 @@ contract FinancingPool is Ownable, ReentrancyGuard {
      * 4. Call registry.grantRole(FINANCING_CONTRACT_ROLE, address(financingPool))
      * Step 4 is critical — without it, FinancingPool cannot update invoice status.
      */
-    constructor(address owner, address invoiceRegistry, address stablecoin) Ownable(owner) {
+    constructor(
+        address owner,
+        address invoiceRegistry,
+        address stablecoin
+    ) Ownable(owner) {
         i_invoiceRegistry = InvoiceRegistry(invoiceRegistry);
         i_stablecoin = IERC20(stablecoin);
     }
@@ -233,7 +240,9 @@ contract FinancingPool is Ownable, ReentrancyGuard {
      */
     function fundInvoice(uint256 invoiceId) external nonReentrant {
         // Read invoice data — external call, but view-only (no state change)
-        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(invoiceId);
+        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(
+            invoiceId
+        );
 
         // ---- CHECKS ----
 
@@ -279,9 +288,18 @@ contract FinancingPool is Ownable, ReentrancyGuard {
         // Pull financing amount from investor's wallet, send directly to business
         // SafeERC20 ensures this reverts if transfer fails for any reason
         // The investor must have approved this contract before calling fundInvoice
-        i_stablecoin.safeTransferFrom(msg.sender, invoice.business, invoice.financingAmount);
+        i_stablecoin.safeTransferFrom(
+            msg.sender,
+            invoice.business,
+            invoice.financingAmount
+        );
 
-        emit InvoiceFunded(invoiceId, msg.sender, invoice.business, invoice.financingAmount);
+        emit InvoiceFunded(
+            invoiceId,
+            msg.sender,
+            invoice.business,
+            invoice.financingAmount
+        );
     }
 
     // ============================================================
@@ -320,7 +338,9 @@ contract FinancingPool is Ownable, ReentrancyGuard {
      * MockUSDC and repays directly.
      */
     function repayInvoice(uint256 invoiceId) external nonReentrant {
-        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(invoiceId);
+        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(
+            invoiceId
+        );
         address investor = s_invoiceInvestor[invoiceId];
 
         // ---- CHECKS ----
@@ -392,7 +412,9 @@ contract FinancingPool is Ownable, ReentrancyGuard {
      * Blockchain records what happened; it cannot compel real-world payment.
      */
     function markOverdue(uint256 invoiceId) external {
-        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(invoiceId);
+        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(
+            invoiceId
+        );
 
         // Can only mark overdue if it's currently FUNDED
         if (invoice.status != InvoiceRegistry.InvoiceStatus.FUNDED) {
@@ -401,7 +423,10 @@ contract FinancingPool is Ownable, ReentrancyGuard {
 
         // Due date must have passed
         if (block.timestamp <= invoice.dueDate) {
-            revert FinancingPool__DueDateNotPassed(invoice.dueDate, block.timestamp);
+            revert FinancingPool__DueDateNotPassed(
+                invoice.dueDate,
+                block.timestamp
+            );
         }
 
         i_invoiceRegistry.updateInvoiceStatus(
@@ -426,7 +451,9 @@ contract FinancingPool is Ownable, ReentrancyGuard {
      * before DEFAULTED can be set. We simplify this here.
      */
     function markDefaulted(uint256 invoiceId) external onlyOwner {
-        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(invoiceId);
+        InvoiceRegistry.Invoice memory invoice = i_invoiceRegistry.getInvoice(
+            invoiceId
+        );
 
         if (invoice.status != InvoiceRegistry.InvoiceStatus.OVERDUE) {
             revert FinancingPool__InvoiceNotOverdue(invoiceId, invoice.status);
@@ -445,7 +472,9 @@ contract FinancingPool is Ownable, ReentrancyGuard {
 
     /// @notice Get the investor address for a given invoice
     /// @return address(0) if invoice is not yet funded
-    function getInvoiceInvestor(uint256 invoiceId) external view returns (address) {
+    function getInvoiceInvestor(
+        uint256 invoiceId
+    ) external view returns (address) {
         return s_invoiceInvestor[invoiceId];
     }
 

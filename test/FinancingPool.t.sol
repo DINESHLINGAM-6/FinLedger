@@ -37,18 +37,18 @@ contract FinancingPoolTest is Test {
     FinancingPool public pool;
 
     // Actors
-    address public admin    = makeAddr("admin");
+    address public admin = makeAddr("admin");
     address public verifier = makeAddr("verifier");
     address public business = makeAddr("business");
-    address public buyer    = makeAddr("buyer");
+    address public buyer = makeAddr("buyer");
     address public investor = makeAddr("investor");
     address public stranger = makeAddr("stranger");
 
     // Token amounts — all in MockUSDC units (6 decimals)
-    uint256 public constant INVOICE_AMOUNT   = 10_000 * 10 ** 6; // $10,000 face value
-    uint256 public constant FINANCING_AMOUNT =  9_500 * 10 ** 6; // $9,500 investor pays
+    uint256 public constant INVOICE_AMOUNT = 10_000 * 10 ** 6; // $10,000 face value
+    uint256 public constant FINANCING_AMOUNT = 9_500 * 10 ** 6; // $9,500 investor pays
     uint256 public constant INVESTOR_BALANCE = 50_000 * 10 ** 6; // $50,000 test balance
-    uint256 public constant BUYER_BALANCE    = 50_000 * 10 ** 6; // $50,000 test balance
+    uint256 public constant BUYER_BALANCE = 50_000 * 10 ** 6; // $50,000 test balance
 
     // 30 days from now — the invoice due date
     uint256 public constant THIRTY_DAYS = 30 days;
@@ -77,9 +77,9 @@ contract FinancingPoolTest is Test {
         vm.startPrank(admin);
 
         // Deploy contracts
-        usdc     = new MockUSDC(admin);
+        usdc = new MockUSDC(admin);
         registry = new InvoiceRegistry(admin);
-        pool     = new FinancingPool(admin, address(registry), address(usdc));
+        pool = new FinancingPool(admin, address(registry), address(usdc));
 
         // Grant VERIFIER_ROLE to verifier
         registry.grantRole(registry.VERIFIER_ROLE(), verifier);
@@ -163,7 +163,9 @@ contract FinancingPoolTest is Test {
      * fundInvoice call would fail at updateInvoiceStatus().
      */
     function test_deployment_poolHasFinancingContractRole() public view {
-        assertTrue(registry.hasRole(registry.FINANCING_CONTRACT_ROLE(), address(pool)));
+        assertTrue(
+            registry.hasRole(registry.FINANCING_CONTRACT_ROLE(), address(pool))
+        );
     }
 
     /**
@@ -197,7 +199,9 @@ contract FinancingPoolTest is Test {
      *   investor: INVESTOR_BALANCE → INVESTOR_BALANCE - FINANCING_AMOUNT
      *   business: 0 → FINANCING_AMOUNT
      */
-    function test_fundInvoice_happyPath_transfersTokensAndUpdatesStatus() public {
+    function test_fundInvoice_happyPath_transfersTokensAndUpdatesStatus()
+        public
+    {
         uint256 id = _createAndVerifyInvoice();
 
         // Record balances BEFORE funding
@@ -231,7 +235,11 @@ contract FinancingPoolTest is Test {
         );
 
         // ---- Verify investor recorded ----
-        assertEq(pool.getInvoiceInvestor(id), investor, "Investor should be recorded");
+        assertEq(
+            pool.getInvoiceInvestor(id),
+            investor,
+            "Investor should be recorded"
+        );
     }
 
     /**
@@ -247,7 +255,12 @@ contract FinancingPoolTest is Test {
         usdc.approve(address(pool), FINANCING_AMOUNT);
 
         vm.expectEmit(true, true, true, true, address(pool));
-        emit FinancingPool.InvoiceFunded(id, investor, business, FINANCING_AMOUNT);
+        emit FinancingPool.InvoiceFunded(
+            id,
+            investor,
+            business,
+            FINANCING_AMOUNT
+        );
 
         pool.fundInvoice(id);
         vm.stopPrank();
@@ -279,7 +292,11 @@ contract FinancingPoolTest is Test {
         // Create invoice but do NOT verify it
         vm.prank(business);
         uint256 id = registry.createInvoice(
-            buyer, INVOICE_AMOUNT, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH
+            buyer,
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
         );
 
         vm.startPrank(investor);
@@ -344,7 +361,9 @@ contract FinancingPoolTest is Test {
         vm.startPrank(business);
         usdc.approve(address(pool), FINANCING_AMOUNT);
 
-        vm.expectRevert(FinancingPool.FinancingPool__BusinessCannotFundOwnInvoice.selector);
+        vm.expectRevert(
+            FinancingPool.FinancingPool__BusinessCannotFundOwnInvoice.selector
+        );
         pool.fundInvoice(id);
         vm.stopPrank();
     }
@@ -362,7 +381,9 @@ contract FinancingPoolTest is Test {
         vm.startPrank(buyer);
         usdc.approve(address(pool), FINANCING_AMOUNT);
 
-        vm.expectRevert(FinancingPool.FinancingPool__BuyerCannotBeInvestor.selector);
+        vm.expectRevert(
+            FinancingPool.FinancingPool__BuyerCannotBeInvestor.selector
+        );
         pool.fundInvoice(id);
         vm.stopPrank();
     }
@@ -427,12 +448,14 @@ contract FinancingPoolTest is Test {
      *   Received: invoice.amount ($10,000)
      *   Profit:   $500 (≈ 5.26% return over 30 days)
      */
-    function test_repayInvoice_happyPath_transfersTokensAndClosesInvoice() public {
+    function test_repayInvoice_happyPath_transfersTokensAndClosesInvoice()
+        public
+    {
         uint256 id = _investorFundsInvoice();
 
         // Record balances before repayment
         uint256 investorBalanceBefore = usdc.balanceOf(investor);
-        uint256 buyerBalanceBefore    = usdc.balanceOf(buyer);
+        uint256 buyerBalanceBefore = usdc.balanceOf(buyer);
 
         // Buyer approves and repays
         vm.startPrank(buyer);
@@ -471,7 +494,12 @@ contract FinancingPoolTest is Test {
         usdc.approve(address(pool), INVOICE_AMOUNT);
 
         vm.expectEmit(true, true, true, true, address(pool));
-        emit FinancingPool.RepaymentReceived(id, buyer, investor, INVOICE_AMOUNT);
+        emit FinancingPool.RepaymentReceived(
+            id,
+            buyer,
+            investor,
+            INVOICE_AMOUNT
+        );
 
         pool.repayInvoice(id);
         vm.stopPrank();
@@ -499,7 +527,11 @@ contract FinancingPoolTest is Test {
         uint256 investorEndBalance = usdc.balanceOf(investor);
         uint256 netProfit = investorEndBalance - investorStartBalance;
 
-        assertEq(netProfit, INVOICE_AMOUNT - FINANCING_AMOUNT, "Net profit should be $500");
+        assertEq(
+            netProfit,
+            INVOICE_AMOUNT - FINANCING_AMOUNT,
+            "Net profit should be $500"
+        );
         console.log("Investor net profit ($):", netProfit / 10 ** 6);
     }
 
@@ -628,7 +660,10 @@ contract FinancingPoolTest is Test {
         pool.markOverdue(id);
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(id);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.OVERDUE));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.OVERDUE)
+        );
     }
 
     /**
@@ -712,7 +747,10 @@ contract FinancingPoolTest is Test {
         pool.markDefaulted(id);
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(id);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.DEFAULTED));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.DEFAULTED)
+        );
     }
 
     /**
@@ -727,7 +765,7 @@ contract FinancingPoolTest is Test {
         vm.warp(block.timestamp + 31 days);
         pool.markOverdue(id);
 
-        vm.expectRevert();  // OwnableUnauthorizedAccount
+        vm.expectRevert(); // OwnableUnauthorizedAccount
         vm.prank(stranger);
         pool.markDefaulted(id);
     }
@@ -791,15 +829,25 @@ contract FinancingPoolTest is Test {
         // --- STEP 1: Create invoice ---
         vm.prank(business);
         uint256 id = registry.createInvoice(
-            buyer, INVOICE_AMOUNT, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH
+            buyer,
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
         );
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.CREATED));
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.CREATED)
+        );
         console.log("Step 1: Invoice CREATED with ID:", id);
 
         // --- STEP 2: Verify ---
         vm.prank(verifier);
         registry.verifyInvoice(id);
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.VERIFIED));
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.VERIFIED)
+        );
         console.log("Step 2: Invoice VERIFIED");
 
         // --- STEP 3: Fund ---
@@ -807,24 +855,38 @@ contract FinancingPoolTest is Test {
         usdc.approve(address(pool), FINANCING_AMOUNT);
         pool.fundInvoice(id);
         vm.stopPrank();
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.FUNDED));
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.FUNDED)
+        );
         assertEq(usdc.balanceOf(business), FINANCING_AMOUNT);
-        console.log("Step 3: Invoice FUNDED - business received $", usdc.balanceOf(business) / 10 ** 6);
+        console.log(
+            "Step 3: Invoice FUNDED - business received $",
+            usdc.balanceOf(business) / 10 ** 6
+        );
 
         // --- STEP 4: Repay ---
         vm.startPrank(buyer);
         usdc.approve(address(pool), INVOICE_AMOUNT);
         pool.repayInvoice(id);
         vm.stopPrank();
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.CLOSED));
-        console.log("Step 4: Invoice CLOSED - investor balance $", usdc.balanceOf(investor) / 10 ** 6);
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.CLOSED)
+        );
+        console.log(
+            "Step 4: Invoice CLOSED - investor balance $",
+            usdc.balanceOf(investor) / 10 ** 6
+        );
 
         // Final balance check
         // Investor started at INVESTOR_BALANCE
         // Paid:     FINANCING_AMOUNT ($9,500)
         // Received: INVOICE_AMOUNT   ($10,000)
         // Expected end balance: INVESTOR_BALANCE - FINANCING_AMOUNT + INVOICE_AMOUNT
-        uint256 expectedEndBalance = INVESTOR_BALANCE - FINANCING_AMOUNT + INVOICE_AMOUNT;
+        uint256 expectedEndBalance = INVESTOR_BALANCE -
+            FINANCING_AMOUNT +
+            INVOICE_AMOUNT;
         assertEq(usdc.balanceOf(investor), expectedEndBalance);
         uint256 investorProfit = INVOICE_AMOUNT - FINANCING_AMOUNT;
         console.log("Investor profit ($):", investorProfit / 10 ** 6);
@@ -846,12 +908,18 @@ contract FinancingPoolTest is Test {
         // Time passes — buyer doesn't repay
         vm.warp(block.timestamp + 31 days);
         pool.markOverdue(id);
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.OVERDUE));
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.OVERDUE)
+        );
 
         // Admin marks defaulted
         vm.prank(admin);
         pool.markDefaulted(id);
-        assertEq(uint8(registry.getInvoice(id).status), uint8(InvoiceRegistry.InvoiceStatus.DEFAULTED));
+        assertEq(
+            uint8(registry.getInvoice(id).status),
+            uint8(InvoiceRegistry.InvoiceStatus.DEFAULTED)
+        );
 
         // Investor's balance is unchanged - no recovery on-chain
         assertEq(
@@ -859,7 +927,10 @@ contract FinancingPoolTest is Test {
             investorBalanceAfterFunding,
             "Investor balance unchanged - blockchain cannot recover funds"
         );
-        console.log("Default recorded on-chain. Investor loses $", FINANCING_AMOUNT / 10 ** 6);
+        console.log(
+            "Default recorded on-chain. Investor loses $",
+            FINANCING_AMOUNT / 10 ** 6
+        );
         console.log("Off-chain legal action required for recovery.");
     }
 

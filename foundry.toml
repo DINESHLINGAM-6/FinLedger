@@ -1,0 +1,15 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+]
+
+[lint]
+# In test files we deliberately don't check ERC-20 return values —
+# we use assertEq / vm.expectRevert for verification instead.
+# Suppressing this lint keeps build output readable.
+exclude_lints = ["erc20-unchecked-transfer"]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

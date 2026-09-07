@@ -31,20 +31,21 @@ contract InvoiceRegistryTest is Test {
     InvoiceRegistry public registry;
 
     // Test actors — each represents a participant in FinLedger
-    address public admin    = makeAddr("admin");    // deploys, manages roles
+    address public admin = makeAddr("admin"); // deploys, manages roles
     address public verifier = makeAddr("verifier"); // approves invoices
     address public business = makeAddr("business"); // creates invoices
-    address public buyer    = makeAddr("buyer");    // repays invoices
+    address public buyer = makeAddr("buyer"); // repays invoices
     address public stranger = makeAddr("stranger"); // unauthorized actor
 
     // Reusable valid invoice parameters
     // These match what a real invoice might contain (in MockUSDC units)
-    uint256 public constant INVOICE_AMOUNT     = 10_000 * 10 ** 6; // $10,000
-    uint256 public constant FINANCING_AMOUNT   =  9_500 * 10 ** 6; // $9,500 (5% discount)
-    uint256 public constant THIRTY_DAYS        = 30 days;
+    uint256 public constant INVOICE_AMOUNT = 10_000 * 10 ** 6; // $10,000
+    uint256 public constant FINANCING_AMOUNT = 9_500 * 10 ** 6; // $9,500 (5% discount)
+    uint256 public constant THIRTY_DAYS = 30 days;
 
     // A fake document hash — in real usage this would be keccak256(pdf bytes)
-    bytes32 public constant DOCUMENT_HASH = keccak256("invoice_document_2024_001.pdf");
+    bytes32 public constant DOCUMENT_HASH =
+        keccak256("invoice_document_2024_001.pdf");
 
     // ============================================================
     //  SETUP
@@ -167,15 +168,18 @@ contract InvoiceRegistryTest is Test {
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(invoiceId);
 
-        assertEq(invoice.id, 0);                                    // first invoice = ID 0
-        assertEq(invoice.business, business);                       // msg.sender stored
+        assertEq(invoice.id, 0); // first invoice = ID 0
+        assertEq(invoice.business, business); // msg.sender stored
         assertEq(invoice.buyer, buyer);
         assertEq(invoice.amount, INVOICE_AMOUNT);
         assertEq(invoice.financingAmount, FINANCING_AMOUNT);
         assertEq(invoice.issuedAt, block.timestamp);
         assertEq(invoice.dueDate, dueDate);
         assertEq(invoice.documentHash, DOCUMENT_HASH);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.CREATED));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.CREATED)
+        );
     }
 
     /**
@@ -185,14 +189,20 @@ contract InvoiceRegistryTest is Test {
      * s_nextInvoiceId increments properly.
      * Multiple businesses can create invoices independently.
      */
-    function test_createInvoice_multipleInvoices_idsIncrementSequentially() public {
+    function test_createInvoice_multipleInvoices_idsIncrementSequentially()
+        public
+    {
         address business2 = makeAddr("business2");
 
         uint256 id0 = _createValidInvoice();
 
         vm.prank(business2);
         uint256 id1 = registry.createInvoice(
-            buyer, INVOICE_AMOUNT, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH
+            buyer,
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
         );
 
         assertEq(id0, 0);
@@ -216,7 +226,7 @@ contract InvoiceRegistryTest is Test {
 
         vm.expectEmit(true, true, true, true, address(registry));
         emit InvoiceRegistry.InvoiceCreated(
-            0,          // first invoice ID = 0
+            0, // first invoice ID = 0
             business,
             buyer,
             INVOICE_AMOUNT,
@@ -226,7 +236,13 @@ contract InvoiceRegistryTest is Test {
         );
 
         vm.prank(business);
-        registry.createInvoice(buyer, INVOICE_AMOUNT, FINANCING_AMOUNT, dueDate, DOCUMENT_HASH);
+        registry.createInvoice(
+            buyer,
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            dueDate,
+            DOCUMENT_HASH
+        );
     }
 
     /**
@@ -281,7 +297,13 @@ contract InvoiceRegistryTest is Test {
     function test_createInvoice_withZeroBuyer_reverts() public {
         vm.prank(business);
         vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidBuyer.selector);
-        registry.createInvoice(address(0), INVOICE_AMOUNT, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH);
+        registry.createInvoice(
+            address(0),
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
+        );
     }
 
     /**
@@ -311,8 +333,16 @@ contract InvoiceRegistryTest is Test {
      */
     function test_createInvoice_withZeroAmount_reverts() public {
         vm.prank(business);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidAmount.selector);
-        registry.createInvoice(buyer, 0, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__InvalidAmount.selector
+        );
+        registry.createInvoice(
+            buyer,
+            0,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
+        );
     }
 
     /**
@@ -323,8 +353,16 @@ contract InvoiceRegistryTest is Test {
      */
     function test_createInvoice_withZeroFinancingAmount_reverts() public {
         vm.prank(business);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidFinancingAmount.selector);
-        registry.createInvoice(buyer, INVOICE_AMOUNT, 0, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__InvalidFinancingAmount.selector
+        );
+        registry.createInvoice(
+            buyer,
+            INVOICE_AMOUNT,
+            0,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
+        );
     }
 
     /**
@@ -334,9 +372,13 @@ contract InvoiceRegistryTest is Test {
      * Investor can't pay MORE than the invoice face value.
      * That would mean the investor loses money instantly.
      */
-    function test_createInvoice_withFinancingAmountExceedingFaceValue_reverts() public {
+    function test_createInvoice_withFinancingAmountExceedingFaceValue_reverts()
+        public
+    {
         vm.prank(business);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidFinancingAmount.selector);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__InvalidFinancingAmount.selector
+        );
         registry.createInvoice(
             buyer,
             INVOICE_AMOUNT,
@@ -354,7 +396,9 @@ contract InvoiceRegistryTest is Test {
      */
     function test_createInvoice_withPastDueDate_reverts() public {
         vm.prank(business);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidDueDate.selector);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__InvalidDueDate.selector
+        );
         registry.createInvoice(
             buyer,
             INVOICE_AMOUNT,
@@ -373,7 +417,9 @@ contract InvoiceRegistryTest is Test {
      */
     function test_createInvoice_withDueDateEqualToNow_reverts() public {
         vm.prank(business);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__InvalidDueDate.selector);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__InvalidDueDate.selector
+        );
         registry.createInvoice(
             buyer,
             INVOICE_AMOUNT,
@@ -401,7 +447,10 @@ contract InvoiceRegistryTest is Test {
         registry.cancelInvoice(id);
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(id);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.CANCELLED));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.CANCELLED)
+        );
     }
 
     /**
@@ -432,7 +481,9 @@ contract InvoiceRegistryTest is Test {
         uint256 id = _createValidInvoice();
 
         vm.prank(stranger);
-        vm.expectRevert(InvoiceRegistry.InvoiceRegistry__NotInvoiceOwner.selector);
+        vm.expectRevert(
+            InvoiceRegistry.InvoiceRegistry__NotInvoiceOwner.selector
+        );
         registry.cancelInvoice(id);
     }
 
@@ -454,9 +505,11 @@ contract InvoiceRegistryTest is Test {
         vm.prank(business);
         vm.expectRevert(
             abi.encodeWithSelector(
-                InvoiceRegistry.InvoiceRegistry__InvalidStatusTransition.selector,
-                InvoiceRegistry.InvoiceStatus.VERIFIED,    // current
-                InvoiceRegistry.InvoiceStatus.CREATED      // required
+                InvoiceRegistry
+                    .InvoiceRegistry__InvalidStatusTransition
+                    .selector,
+                InvoiceRegistry.InvoiceStatus.VERIFIED, // current
+                InvoiceRegistry.InvoiceStatus.CREATED // required
             )
         );
         registry.cancelInvoice(id);
@@ -498,7 +551,10 @@ contract InvoiceRegistryTest is Test {
         registry.verifyInvoice(id);
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(id);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.VERIFIED));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.VERIFIED)
+        );
     }
 
     /**
@@ -514,7 +570,10 @@ contract InvoiceRegistryTest is Test {
         registry.verifyInvoice(id);
 
         InvoiceRegistry.Invoice memory invoice = registry.getInvoice(id);
-        assertEq(uint8(invoice.status), uint8(InvoiceRegistry.InvoiceStatus.VERIFIED));
+        assertEq(
+            uint8(invoice.status),
+            uint8(InvoiceRegistry.InvoiceStatus.VERIFIED)
+        );
     }
 
     /**
@@ -556,7 +615,11 @@ contract InvoiceRegistryTest is Test {
         // would otherwise consume the prank. Placing expectRevert first avoids this.
         vm.expectRevert(
             abi.encodeWithSelector(
-                bytes4(keccak256("AccessControlUnauthorizedAccount(address,bytes32)")),
+                bytes4(
+                    keccak256(
+                        "AccessControlUnauthorizedAccount(address,bytes32)"
+                    )
+                ),
                 stranger,
                 registry.VERIFIER_ROLE()
             )
@@ -577,7 +640,11 @@ contract InvoiceRegistryTest is Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                bytes4(keccak256("AccessControlUnauthorizedAccount(address,bytes32)")),
+                bytes4(
+                    keccak256(
+                        "AccessControlUnauthorizedAccount(address,bytes32)"
+                    )
+                ),
                 business,
                 registry.VERIFIER_ROLE()
             )
@@ -603,9 +670,11 @@ contract InvoiceRegistryTest is Test {
         vm.prank(verifier);
         vm.expectRevert(
             abi.encodeWithSelector(
-                InvoiceRegistry.InvoiceRegistry__InvalidStatusTransition.selector,
-                InvoiceRegistry.InvoiceStatus.VERIFIED,   // current
-                InvoiceRegistry.InvoiceStatus.CREATED     // required
+                InvoiceRegistry
+                    .InvoiceRegistry__InvalidStatusTransition
+                    .selector,
+                InvoiceRegistry.InvoiceStatus.VERIFIED, // current
+                InvoiceRegistry.InvoiceStatus.CREATED // required
             )
         );
         registry.verifyInvoice(id); // second verify — must fail
@@ -627,7 +696,9 @@ contract InvoiceRegistryTest is Test {
         vm.prank(verifier);
         vm.expectRevert(
             abi.encodeWithSelector(
-                InvoiceRegistry.InvoiceRegistry__InvalidStatusTransition.selector,
+                InvoiceRegistry
+                    .InvoiceRegistry__InvalidStatusTransition
+                    .selector,
                 InvoiceRegistry.InvoiceStatus.CANCELLED,
                 InvoiceRegistry.InvoiceStatus.CREATED
             )
@@ -652,7 +723,7 @@ contract InvoiceRegistryTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(
                 InvoiceRegistry.InvoiceRegistry__InvoiceNotFound.selector,
-                0   // no invoices created yet, so ID 0 doesn't exist
+                0 // no invoices created yet, so ID 0 doesn't exist
             )
         );
         registry.getInvoice(0);
@@ -672,7 +743,11 @@ contract InvoiceRegistryTest is Test {
         address business2 = makeAddr("business2");
         vm.prank(business2);
         registry.createInvoice(
-            buyer, INVOICE_AMOUNT, FINANCING_AMOUNT, block.timestamp + THIRTY_DAYS, DOCUMENT_HASH
+            buyer,
+            INVOICE_AMOUNT,
+            FINANCING_AMOUNT,
+            block.timestamp + THIRTY_DAYS,
+            DOCUMENT_HASH
         ); // invoice 1
 
         uint256[] memory buyerIds = registry.getBuyerInvoiceIds(buyer);

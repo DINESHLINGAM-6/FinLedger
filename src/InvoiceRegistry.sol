@@ -50,7 +50,8 @@ contract InvoiceRegistry is AccessControl {
      * an invoice is funded, repaid, or defaulted.
      * We define it now but assign it in Level 3 when FinancingPool is deployed.
      */
-    bytes32 public constant FINANCING_CONTRACT_ROLE = keccak256("FINANCING_CONTRACT_ROLE");
+    bytes32 public constant FINANCING_CONTRACT_ROLE =
+        keccak256("FINANCING_CONTRACT_ROLE");
 
     // ============================================================
     //  TYPES
@@ -75,14 +76,14 @@ contract InvoiceRegistry is AccessControl {
      * Solidity stores it as uint8 internally — no overhead.
      */
     enum InvoiceStatus {
-        CREATED,    // 0 — Invoice submitted, awaiting verification
-        VERIFIED,   // 1 — Approved by verifier, eligible for financing
-        FUNDED,     // 2 — Investor has funded the invoice
-        REPAID,     // 3 — Buyer has repaid the full amount
-        OVERDUE,    // 4 — Due date has passed without repayment
-        DEFAULTED,  // 5 — Marked as defaulted after overdue period
-        CANCELLED,  // 6 — Business cancelled before verification
-        CLOSED      // 7 — Final state after repayment settled
+        CREATED, // 0 — Invoice submitted, awaiting verification
+        VERIFIED, // 1 — Approved by verifier, eligible for financing
+        FUNDED, // 2 — Investor has funded the invoice
+        REPAID, // 3 — Buyer has repaid the full amount
+        OVERDUE, // 4 — Due date has passed without repayment
+        DEFAULTED, // 5 — Marked as defaulted after overdue period
+        CANCELLED, // 6 — Business cancelled before verification
+        CLOSED // 7 — Final state after repayment settled
     }
 
     /**
@@ -367,7 +368,8 @@ contract InvoiceRegistry is AccessControl {
         // block.timestamp is the Unix timestamp of the block being mined
         // Note: block.timestamp can be manipulated slightly by miners (~15s)
         // For due dates measured in days/weeks, this is not a concern
-        if (dueDate <= block.timestamp) revert InvoiceRegistry__InvalidDueDate();
+        if (dueDate <= block.timestamp)
+            revert InvoiceRegistry__InvalidDueDate();
 
         // ---- EFFECTS ----
 
@@ -379,11 +381,11 @@ contract InvoiceRegistry is AccessControl {
         // Every field stored here costs gas (SSTORE opcode)
         s_invoices[invoiceId] = Invoice({
             id: invoiceId,
-            business: msg.sender,       // whoever called this function
+            business: msg.sender, // whoever called this function
             buyer: buyer,
             amount: amount,
             financingAmount: financingAmount,
-            issuedAt: block.timestamp,  // current block timestamp
+            issuedAt: block.timestamp, // current block timestamp
             dueDate: dueDate,
             documentHash: documentHash,
             status: InvoiceStatus.CREATED
@@ -530,25 +532,23 @@ contract InvoiceRegistry is AccessControl {
      * (memory), not a storage reference. The caller gets all fields.
      * External callers (frontend, other contracts) call this to read invoice data.
      */
-    function getInvoice(uint256 invoiceId) external view returns (Invoice memory) {
+    function getInvoice(
+        uint256 invoiceId
+    ) external view returns (Invoice memory) {
         return _getInvoiceStorage(invoiceId);
     }
 
     /// @notice Get all invoice IDs created by a specific business
-    function getBusinessInvoiceIds(address business)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getBusinessInvoiceIds(
+        address business
+    ) external view returns (uint256[] memory) {
         return s_businessInvoices[business];
     }
 
     /// @notice Get all invoice IDs owed by a specific buyer
-    function getBuyerInvoiceIds(address buyer)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getBuyerInvoiceIds(
+        address buyer
+    ) external view returns (uint256[] memory) {
         return s_buyerInvoices[buyer];
     }
 
@@ -576,11 +576,9 @@ contract InvoiceRegistry is AccessControl {
      * the invoice directly through this reference. Any writes go
      * directly to EVM storage — no need to write back.
      */
-    function _getInvoiceStorage(uint256 invoiceId)
-        internal
-        view
-        returns (Invoice storage)
-    {
+    function _getInvoiceStorage(
+        uint256 invoiceId
+    ) internal view returns (Invoice storage) {
         // If invoiceId >= s_nextInvoiceId, it was never created
         // Remember: mappings return zero-values for missing keys
         // Without this check, we'd silently modify a zero invoice

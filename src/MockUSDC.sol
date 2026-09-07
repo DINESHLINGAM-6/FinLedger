@@ -56,10 +56,9 @@ contract MockUSDC is ERC20, Ownable {
      * OpenZeppelin's Ownable gives us a ready-made owner pattern
      * with a transferOwnership function included.
      */
-    constructor(address initialOwner)
-        ERC20("Mock USDC", "mUSDC")
-        Ownable(initialOwner)
-    {}
+    constructor(
+        address initialOwner
+    ) ERC20("Mock USDC", "mUSDC") Ownable(initialOwner) {}
 
     // ============================================================
     //  EXTERNAL FUNCTIONS

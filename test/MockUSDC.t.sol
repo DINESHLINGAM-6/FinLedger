@@ -40,7 +40,7 @@ contract MockUSDCTest is Test {
     // `makeAddr()` creates a deterministic address from a string label
     address public owner = makeAddr("owner");
     address public alice = makeAddr("alice"); // represents an investor
-    address public bob = makeAddr("bob");     // represents a business
+    address public bob = makeAddr("bob"); // represents a business
 
     // A convenient constant — $100 in MockUSDC (6 decimals)
     // $100 = 100 * 10^6 = 100_000_000
@@ -163,7 +163,10 @@ contract MockUSDCTest is Test {
         vm.prank(alice); // alice is NOT the owner
 
         vm.expectRevert(
-            abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", alice)
+            abi.encodeWithSignature(
+                "OwnableUnauthorizedAccount(address)",
+                alice
+            )
         );
         usdc.mint(alice, ONE_HUNDRED_USDC);
     }
@@ -333,7 +336,7 @@ contract MockUSDCTest is Test {
      * The real value is: $10,000 = 10_000 * 10^6 = 10_000_000_000
      */
     function test_decimals_understandingUSDCPrecision() public {
-        uint256 ONE_DOLLAR = 1 * 10 ** 6;          // 1_000_000
+        uint256 ONE_DOLLAR = 1 * 10 ** 6; // 1_000_000
         uint256 TEN_THOUSAND_DOLLARS = 10_000 * 10 ** 6; // 10_000_000_000
 
         vm.prank(owner);
